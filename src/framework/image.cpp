@@ -9,6 +9,41 @@
 #include "camera.h"
 #include "mesh.h"
 
+void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
+{
+	// Desplazamiento total de cada eje
+	float dx = float(x1 - x0);
+	float dy = float(y1 - y0);
+
+	// d indica cuántos píxeles se deben dibujar
+	int d = int(std::max(std::abs(dx), std::abs(dy)));
+
+	// Si el punto inicial y final coinciden, se dibuja un único píxel
+	if (d == 0)
+	{
+		SetPixel(x0, y0, c);
+		return;
+	}
+
+	// Calculamos el vector dirección v = (dx/d, dy/d)
+	float x_inc = dx / d;
+	float y_inc = dy / d;
+
+	// Coordenadas actuales son el punto inicial A
+	float x = float(x0);
+	float y = float(y0);
+
+	for (int i = 0; i <= d; i++)
+	{
+		// Dibujamos el píxel de la posición actual
+		SetPixel(int(std::floor(x)), int(std::floor(y)), c);
+
+		// Siguiente posicion
+		x += x_inc;
+		y += y_inc;
+	}
+}
+
 Image::Image() {
 	width = 0; height = 0;
 	pixels = NULL;

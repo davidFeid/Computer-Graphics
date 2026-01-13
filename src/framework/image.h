@@ -36,6 +36,9 @@ public:
 	unsigned int height;
 	unsigned int bytes_per_pixel = 3; // Bits per pixel
 
+	void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
+
+
 	Color* pixels;
 
 	// Constructors

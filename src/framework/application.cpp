@@ -29,9 +29,16 @@ void Application::Init(void)
 }
 
 // Render one frame
-void Application::Render(void)
+void Application::Render()
 {
 	// ...
+
+	int x = framebuffer.width / 2; //Buscamos el centro
+	int y = framebuffer.height / 2;
+
+	framebuffer.Fill(Color::BLACK);
+
+	framebuffer.DrawLineDDA(x, y, x + 100 * cos(time), y + 100 * sin(time), Color::WHITE);
 
 	framebuffer.Render();
 }
