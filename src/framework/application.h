@@ -12,6 +12,12 @@ class Application
 {
 public:
 
+	//Rect - Border
+	int borderWidth = 1;
+
+	//Relleno Triangulo
+	bool fillTriangle = true;
+
 	// Window
 
 	SDL_Window* window = nullptr;

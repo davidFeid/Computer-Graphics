@@ -44,6 +44,112 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
 	}
 }
 
+void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,
+	int borderWidth, bool isFilled, const Color& fillColor) {
+
+	if (isFilled) {
+		// Recorremos cada fila del interior
+		for (int i = borderWidth; i < h - borderWidth; i++) {
+			// Dibujamos una línea horizontal de un lado al otro del interior
+			DrawLineDDA(x + borderWidth, y + i, x + w - borderWidth, y + i, fillColor);
+		}
+	}
+
+	for (int i = 0; i < borderWidth; i++) {
+		// Línea Superior
+		DrawLineDDA(x + i, y + i, x + w - i, y + i, borderColor);
+		// Línea Inferior
+		DrawLineDDA(x + i, y + h - i, x + w - i, y + h - i, borderColor);
+		// Línea Izquierda
+		DrawLineDDA(x + i, y + i, x + i, y + h - i, borderColor);
+		// Línea Derecha
+		DrawLineDDA(x + w - i, y + i, x + w - i, y + h - i, borderColor);
+	}
+}
+
+void Image::ScanLineDDA(int x0, int y0, int x1, int y1, int* table_min, int* table_max)
+{
+	// Desplazamiento total de cada eje
+	float dx = float(x1 - x0);
+	float dy = float(y1 - y0);
+
+	// d indica cuántos píxeles se deben dibujar
+	int d = int(std::max(std::abs(dx), std::abs(dy)));
+
+	// Si el punto inicial y final coinciden, se dibuja un único píxel
+	/*if (d == 0)
+	{
+		SetPixel(x0, y0, c);
+		return;
+	}*/
+
+	// Calculamos el vector dirección v = (dx/d, dy/d)
+	float x_inc = dx / d;
+	float y_inc = dy / d;
+
+	// Coordenadas actuales son el punto inicial A
+	float x = float(x0);
+	float y = float(y0);
+
+	for (int i = 0; i <= d; i++) {
+		int ix = round(x);
+		int iy = round(y);
+
+		// Verificación de seguridad para no salirnos de la memoria del array
+		if (iy >= 0 && iy < height) {
+			// Si la X actual es más pequeña que lo que había, es nuestro nuevo inicio
+			if (ix < table_min[iy]) table_min[iy] = ix;
+
+			// Si la X actual es más grande que lo que había, es nuestro nuevo final
+			if (ix > table_max[iy]) table_max[iy] = ix;
+		}
+
+		x += x_inc;
+		y += y_inc;
+	}
+}
+
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2,
+	const Color& borderColor, bool isFilled, const Color& fillColor) {
+	// PASO A: Dibujar el borde (Esto ya sabes hacerlo con DrawLineDDA)
+	// Dibujamos las tres líneas que conectan los puntos
+	DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+	DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
+	DrawLineDDA(p2.x, p2.y, p0.x, p0.y, borderColor);
+
+	// PASO B: Relleno (Aquí es donde usaremos las tablas)
+	if (isFilled) {
+		// 1. Crear las tablas dinámicamente según el alto de "esta" imagen
+		int* table_min = new int[height];
+		int* table_max = new int[height];
+
+		// 2. Inicializar con los valores "extremos" que hablamos
+		for (int i = 0; i < height; i++) {
+			table_min[i] = width; // Muy grande
+			table_max[i] = -1;          // Muy pequeño
+		}
+
+		// Aquí irán las llamadas a ScanLineDDA... pero vamos poco a poco.
+		// 3. Fase de anotación: Cada lado recorre la tabla y anota sus X
+		ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table_min, table_max);
+		ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table_min, table_max);
+		ScanLineDDA(p2.x, p2.y, p0.x, p0.y, table_min, table_max);
+
+		// 4. Prueba de verificación (solo para ver si las tablas tienen datos)
+		for (int y = 0; y < this->height; y++) {
+			// Si la tabla cambió (es decir, encontramos el triángulo en esta fila Y)
+			if (table_max[y] != -1) {
+				for (int x = table_min[y]; x <= table_max[y]; x++) {
+					SetPixel(x, y, fillColor);
+				}
+			}
+		}
+		// IMPORTANTE: Al final de todo el proceso de relleno, liberamos la memoria
+		delete[] table_min;
+		delete[] table_max;
+	}
+}
+
 Image::Image() {
 	width = 0; height = 0;
 	pixels = NULL;

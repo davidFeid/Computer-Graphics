@@ -37,6 +37,11 @@ public:
 	unsigned int bytes_per_pixel = 3; // Bits per pixel
 
 	void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
+	void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,
+		int borderWidth, bool isFilled, const Color& fillColor);
+	void Image::ScanLineDDA(int x0, int y0, int x1, int y1, int* table_min, int* table_max);
+	void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2,
+		const Color& borderColor, bool isFilled, const Color& fillColor);
 
 
 	Color* pixels;
