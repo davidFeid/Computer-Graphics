@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "utils.h" 
+#include "entity.h"
 
 Application::Application(const char* caption, int width, int height)
 {
@@ -26,6 +27,16 @@ Application::~Application()
 void Application::Init(void)
 {
 	std::cout << "Initiating app..." << std::endl;
+
+	// 1. Cargamos un mesh de los archivos del framework
+    Mesh* mesh = Mesh::Get("data/head.obj"); 
+    
+    // 2. Creamos la matriz de modelo (posiciÃ³n en el mundo)
+    Matrix44 model_matrix;
+    model_matrix.SetIdentity(); // Empezamos en el origen (0,0,0) [cite: 316, 317]
+
+    // 3. Instanciamos la entidad [cite: 53]
+    my_entity = new Entity(mesh, model_matrix);
 }
 
 // Render one frame
@@ -38,21 +49,17 @@ void Application::Render()
 	
 	framebuffer.Fill(Color::BLACK);
 
-	//framebuffer.DrawLineDDA(x, y, x + 100 * cos(time), y + 100 * sin(time), Color::WHITE); //Linea DDA	
+    // Configuramos la cÃ¡mara con matrices de ejemplo para que se vea algo [cite: 72, 73]
+    Camera camera;
+    camera.SetExampleViewMatrix();
+    camera.SetExampleProjectionMatrix();
 
-	//Rectangulo
+    // Dibujamos nuestra entidad [cite: 76, 78]
+    if (my_entity != nullptr) {
+        my_entity->Render(&framebuffer, &camera, Color::WHITE);
+    }
 
-	framebuffer.DrawRect(100, 100, 200, 150, Color::WHITE, borderWidth, true, Color::BLUE);
-
-	//Triángulo	
-	Vector2 p0(400, 100); // Punta arriba
-	Vector2 p1(300, 300); // Esquina izquierda abajo
-	Vector2 p2(500, 300); // Esquina derecha abajo
-
-	// Llamamos a la nueva función que acabamos de declarar en el .h y el .cpp
-	framebuffer.DrawTriangle(p0, p1, p2, Color::RED, fillTriangle, Color::GREEN);
-
-	framebuffer.Render();
+    framebuffer.Render();
 }
 
 // Called after render
@@ -70,20 +77,20 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
 		
 		// Caso para aumentar el grosor
 		case SDLK_PLUS:
-		case SDLK_KP_PLUS: // Teclado numérico
+		case SDLK_KP_PLUS: // Teclado numï¿½rico
 			borderWidth++;
 			break;
 
 		// Caso para disminuir el grosor
 		case SDLK_MINUS:
-		case SDLK_KP_MINUS: // Teclado numérico
+		case SDLK_KP_MINUS: // Teclado numï¿½rico
 			borderWidth--;
-			// Nunca podrá ser menor a 1
+			// Nunca podrï¿½ ser menor a 1
 			if (borderWidth < 1) borderWidth = 1;
 			break;
 
 		case SDLK_f:
-			// El símbolo '!' invierte el valor: si es true pasa a false y viceversa
+			// El sï¿½mbolo '!' invierte el valor: si es true pasa a false y viceversa
 			fillTriangle = !fillTriangle;
 			break;
 	}
